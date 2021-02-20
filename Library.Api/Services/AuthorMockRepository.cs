@@ -17,5 +17,15 @@ namespace Library.Api.Services {
         public bool IsAuthorExists(Guid authorId) {
             return LibraryMockData.Current.Authors.Any(item => item.Id == authorId);
         }
+
+        public void AddAuthor(AuthorDto author) {
+            author.Id = Guid.NewGuid();
+            LibraryMockData.Current.Authors.Add(author);
+        }
+
+        public void DeleteAuthor(AuthorDto author) {
+            LibraryMockData.Current.Books.RemoveAll(book => book.AuthorId == author.Id);
+            LibraryMockData.Current.Authors.Remove(author);
+        }
     }
 }

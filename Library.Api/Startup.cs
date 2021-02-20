@@ -11,6 +11,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using Microsoft.OpenApi.Models;
 
 namespace Library.Api {
     public class Startup {
@@ -22,7 +23,17 @@ namespace Library.Api {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
-            services.AddControllers();
+            services.AddControllers()
+                .AddNewtonsoftJson();
+
+            // Swagger Doc
+            services.AddSwaggerGen(c => {
+                c.SwaggerDoc("v1", new OpenApiInfo {
+                    Title = "Library API",
+                    Version = "v1"
+                });
+            });
+
             services.AddScoped<IAuthorRepository, AuthorMockRepository>();
             services.AddScoped<IBookRepository, BookMockRepository>();
         }
@@ -39,9 +50,11 @@ namespace Library.Api {
 
             app.UseAuthorization();
 
-            app.UseEndpoints(endpoints => {
-                endpoints.MapControllers();
-            });
+            // swagger 中间件
+            app.UseSwagger();
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library Api v1"));
+
+            app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }
 }
