@@ -1,13 +1,8 @@
 ﻿using System;
-using System.Collections.Generic;
-using Library.Api.Models;
+using Library.Api.Entities;
 
 namespace Library.Api.Services {
-    public interface IBookRepository {
-        IEnumerable<BookDto> GetBooksForAuthor(Guid authorId);
-        BookDto GetBookForAuthor(Guid authorId, Guid bookId);
-        void AddBook(BookDto book);
-        void DeleteBook(BookDto book);
-        void UpdateBook(Guid authorId, Guid bookId, BookForUpdateDto book);
+    public interface IBookRepository : IRepositoryBase<Book>, IRepositoryBaseWithId<Book,Guid> {
+        
     }
 }

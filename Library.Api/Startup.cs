@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Library.Api.Entities;
 using Library.Api.Services;
+using Library.Api.Services.Impl;
+using Library.Api.Services.Mock;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -41,8 +43,11 @@ namespace Library.Api {
                 option.UseSqlite(Configuration.GetConnectionString("SQLite"));
             });
 
-            services.AddScoped<IAuthorRepository, AuthorMockRepository>();
-            services.AddScoped<IBookRepository, BookMockRepository>();
+            // 仓储包装器
+            services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+            
+            services.AddScoped<IAuthorMockRepository, AuthorMockRepository>();
+            services.AddScoped<IBookMockRepository, BookMockRepository>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

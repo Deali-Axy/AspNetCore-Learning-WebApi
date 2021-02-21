@@ -5,7 +5,7 @@ using System.Linq.Expressions;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
-namespace Library.Api.Services {
+namespace Library.Api.Services.Impl {
     public class RepositoryBase<T, TId> : IRepositoryBase<T>, IRepositoryBaseWithId<T, TId> where T : class {
         private DbContext DbContext { get; }
 

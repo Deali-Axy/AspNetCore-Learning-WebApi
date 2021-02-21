@@ -4,8 +4,8 @@ using System.Linq;
 using Library.Api.Data;
 using Library.Api.Models;
 
-namespace Library.Api.Services {
-    public class AuthorMockRepository : IAuthorRepository {
+namespace Library.Api.Services.Mock {
+    public class AuthorMockRepository : IAuthorMockRepository {
         public IEnumerable<AuthorDto> GetAuthors() {
             return LibraryMockData.Current.Authors;
         }

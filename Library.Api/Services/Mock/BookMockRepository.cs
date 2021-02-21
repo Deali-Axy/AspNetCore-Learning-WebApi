@@ -4,8 +4,8 @@ using System.Linq;
 using Library.Api.Data;
 using Library.Api.Models;
 
-namespace Library.Api.Services {
-    public class BookMockRepository : IBookRepository {
+namespace Library.Api.Services.Mock {
+    public class BookMockRepository : IBookMockRepository {
         public IEnumerable<BookDto> GetBooksForAuthor(Guid authorId) {
             return LibraryMockData.Current.Books.Where(item => item.AuthorId == authorId).ToList();
         }
