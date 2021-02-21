@@ -1,8 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using AutoMapper;
+using Library.Api.Entities;
+using Library.Api.Filters;
 using Library.Api.Models;
 using Library.Api.Services;
+using Library.Api.Services.Impl;
 using Library.Api.Services.Mock;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -10,98 +15,83 @@ using Microsoft.AspNetCore.Mvc;
 namespace Library.Api.Controllers {
     [ApiController]
     [Route("api/authors/{authorId}/books")]
+    [ServiceFilter(typeof(CheckAuthorExistFilterAttribute))]
     public class BookController : ControllerBase {
-        private IAuthorMockRepository AuthorMockRepository { get; }
-        private IBookMockRepository BookMockRepository { get; }
+        private IRepositoryWrapper _repositoryWrapper;
+        private IMapper _mapper;
 
-        public BookController(IBookMockRepository bookMockRepository, IAuthorMockRepository authorMockRepository) {
-            AuthorMockRepository = authorMockRepository;
-            BookMockRepository = bookMockRepository;
+        public BookController(IRepositoryWrapper repositoryWrapper, IMapper mapper) {
+            _repositoryWrapper = repositoryWrapper;
+            _mapper = mapper;
         }
 
         [HttpGet]
-        public ActionResult<List<BookDto>> GetBooks(Guid authorId) {
-            if (!AuthorMockRepository.IsAuthorExists(authorId)) {
-                return NotFound();
-            }
-
-            return BookMockRepository.GetBooksForAuthor(authorId).ToList();
+        public async Task<ActionResult<IEnumerable<BookDto>>> GetBooksAsync(Guid authorId) {
+            var books = await _repositoryWrapper.Book.GetBooksAsync(authorId);
+            var bookDtoList = _mapper.Map<IEnumerable<BookDto>>(books);
+            return bookDtoList.ToList();
         }
 
-        [HttpGet("{bookId}", Name = nameof(GetBook))]
-        public ActionResult<BookDto> GetBook(Guid authorId, Guid bookId) {
-            if (!AuthorMockRepository.IsAuthorExists(authorId)) {
-                return NotFound();
-            }
+        [HttpGet("{bookId}", Name = nameof(GetBookAsync))]
+        public async Task<ActionResult<BookDto>> GetBookAsync(Guid authorId, Guid bookId) {
+            var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
+            if (book == null) return NotFound();
 
-            var book = BookMockRepository.GetBookForAuthor(authorId, bookId);
-            if (book == null) {
-                return NotFound();
-            }
-
-            return book;
+            var bookDto = _mapper.Map<BookDto>(book);
+            return bookDto;
         }
 
         [HttpPost]
-        public IActionResult AddBook(Guid authorId, BookForCreationDto bookForCreationDto) {
-            if (!AuthorMockRepository.IsAuthorExists(authorId)) {
-                return NotFound();
-            }
+        public async Task<IActionResult> AddBookAsync(Guid authorId, BookForCreationDto bookForCreationDto) {
+            var book = _mapper.Map<Book>(bookForCreationDto);
+            book.AuthorId = authorId;
+            _repositoryWrapper.Book.Create(book);
 
-            var book = new BookDto {
-                Id = Guid.NewGuid(),
-                Title = bookForCreationDto.Title,
-                Description = bookForCreationDto.Description,
-                Pages = bookForCreationDto.Pages,
-                AuthorId = authorId
-            };
+            if (!await _repositoryWrapper.Book.SaveAsync())
+                throw new Exception("创建资源 book 失败");
 
-            BookMockRepository.AddBook(book);
-
-            return CreatedAtRoute(nameof(GetBook), new {authorId = authorId, bookId = book.Id}, book);
+            var bookDto = _mapper.Map<BookDto>(book);
+            return CreatedAtRoute(nameof(GetBookAsync), new {authorId = authorId, bookId = bookDto.Id}, bookDto);
         }
 
         [HttpDelete("{bookId}")]
-        public IActionResult DeleteBook(Guid authorId, Guid bookId) {
-            if (!AuthorMockRepository.IsAuthorExists(authorId)) {
-                return NotFound();
-            }
-
-            var book = BookMockRepository.GetBookForAuthor(authorId, bookId);
+        public async Task<IActionResult> DeleteBookAsync(Guid authorId, Guid bookId) {
+            var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();
+            
+            _repositoryWrapper.Book.Delete(book);
+            var result = await _repositoryWrapper.Book.SaveAsync();
+            if (!result) throw new Exception("删除资源失败");
 
-            BookMockRepository.DeleteBook(book);
             return NoContent();
         }
 
         [HttpPut("{bookId}")]
-        public IActionResult UpdateBook(Guid authorId, Guid bookId, BookForUpdateDto updatedBook) {
-            if (!AuthorMockRepository.IsAuthorExists(authorId)) return NotFound();
-
-            var book = BookMockRepository.GetBookForAuthor(authorId, bookId);
+        public async Task<IActionResult> UpdateBookAsync(Guid authorId, Guid bookId, BookForUpdateDto updatedBook) {
+            var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();
 
-            BookMockRepository.UpdateBook(authorId, bookId, updatedBook);
+            _mapper.Map(updatedBook, book, typeof(BookForUpdateDto), typeof(Book));
+            _repositoryWrapper.Book.Update(book);
+            if (!await _repositoryWrapper.Book.SaveAsync()) throw new Exception("更新资源失败");
+
             return NoContent();
         }
 
         [HttpPatch("{bookId}")]
-        public IActionResult PartiallyUpdateBook(Guid authorId, Guid bookId,
+        public async Task<IActionResult> PartiallyUpdateBookAsync(Guid authorId, Guid bookId,
             JsonPatchDocument<BookForUpdateDto> patchDocument) {
-            if (!AuthorMockRepository.IsAuthorExists(authorId)) return NotFound();
-            var book = BookMockRepository.GetBookForAuthor(authorId, bookId);
+            var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();
 
-            var bookToPatch = new BookForUpdateDto {
-                Title = book.Title,
-                Description = book.Description,
-                Pages = book.Pages
-            };
-
-            patchDocument.ApplyTo(bookToPatch, ModelState);
+            var bookUpdateDto = _mapper.Map<BookForUpdateDto>(book);
+            patchDocument.ApplyTo(bookUpdateDto, ModelState);
             if (!ModelState.IsValid) return BadRequest(ModelState);
 
-            BookMockRepository.UpdateBook(authorId, bookId, bookToPatch);
+            _mapper.Map(bookUpdateDto, book, typeof(BookForUpdateDto), typeof(Book));
+            _repositoryWrapper.Book.Update(book);
+            if (!await _repositoryWrapper.Book.SaveAsync()) throw new Exception("更新资源失败");
+
             return NoContent();
         }
     }

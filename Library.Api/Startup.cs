@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Library.Api.Entities;
+using Library.Api.Filters;
 using Library.Api.Middlewares;
 using Library.Api.Services;
 using Library.Api.Services.Impl;
@@ -30,6 +31,8 @@ namespace Library.Api {
         public void ConfigureServices(IServiceCollection services) {
             services.AddControllers()
                 .AddNewtonsoftJson();
+            
+            services.AddAutoMapper(typeof(Startup));
 
             // Swagger Doc
             services.AddSwaggerGen(c => {
@@ -46,11 +49,9 @@ namespace Library.Api {
 
             // 仓储包装器
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
-
-            services.AddAutoMapper(typeof(Startup));
             
-            services.AddScoped<IAuthorMockRepository, AuthorMockRepository>();
-            services.AddScoped<IBookMockRepository, BookMockRepository>();
+            // 过滤器
+            services.AddScoped<CheckAuthorExistFilterAttribute>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

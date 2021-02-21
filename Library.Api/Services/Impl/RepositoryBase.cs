@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Library.Api.Services.Impl {
     public class RepositoryBase<T, TId> : IRepositoryBase<T>, IRepositoryBaseWithId<T, TId> where T : class {
-        private DbContext DbContext { get; }
+        protected DbContext DbContext { get; }
 
         public RepositoryBase(DbContext context) {
             DbContext = context;

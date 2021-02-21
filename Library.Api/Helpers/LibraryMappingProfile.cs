@@ -12,7 +12,9 @@ namespace Library.Api.Helpers {
             CreateMap<AuthorForCreationDto, Author>();
             
             CreateMap<Book, BookDto>();
+            CreateMap<Book, BookForCreationDto>();
             CreateMap<BookForCreationDto, Book>();
+            CreateMap<Book, BookForUpdateDto>();
             CreateMap<BookForUpdateDto, Book>();
         }
     }
