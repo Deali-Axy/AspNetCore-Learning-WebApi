@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Library.Api.Entities;
+using Library.Api.Middlewares;
 using Library.Api.Services;
 using Library.Api.Services.Impl;
 using Library.Api.Services.Mock;
@@ -37,7 +38,7 @@ namespace Library.Api {
                     Version = "v1"
                 });
             });
-            
+
             // EF Core
             services.AddDbContext<LibraryDbContext>(option => {
                 option.UseSqlite(Configuration.GetConnectionString("SQLite"));
@@ -45,6 +46,8 @@ namespace Library.Api {
 
             // 仓储包装器
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
+
+            services.AddAutoMapper(typeof(Startup));
             
             services.AddScoped<IAuthorMockRepository, AuthorMockRepository>();
             services.AddScoped<IBookMockRepository, BookMockRepository>();
@@ -55,6 +58,8 @@ namespace Library.Api {
             if (env.IsDevelopment()) {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseMiddleware<PrintRequestMiddleware>();
 
             app.UseHttpsRedirection();
 
