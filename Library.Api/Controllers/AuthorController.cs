@@ -9,6 +9,7 @@ using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Mock;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 
 namespace Library.Api.Controllers {
     [ApiController]
@@ -26,13 +27,29 @@ namespace Library.Api.Controllers {
         public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync(
             [FromQuery] AuthorResourceParameters parameters
         ) {
-            var authors = (await _repositoryWrapper.Author.GetAllAsync())
-                // 实现分页功能
-                .Skip(parameters.PageSize * (parameters.PageNumber-1))
-                .Take(parameters.PageSize)
-                // 根据作者名称排序
-                .OrderBy(author => author.Name);
-            var authorDtoList = _mapper.Map<IEnumerable<AuthorDto>>(authors);
+            var pagedList = await _repositoryWrapper.Author.GetAllAsync(parameters);
+
+            var paginationMetadata = new {
+                totalCount = pagedList.TotalCount,
+                pageSize = pagedList.PageSize,
+                currentPage = pagedList.CurrentPage,
+                totalPages = pagedList.TotalPages,
+                previousPageLink = pagedList.HasPrevious
+                    ? Url.Link(nameof(GetAuthorsAsync), new {
+                        pageNumber = pagedList.CurrentPage - 1,
+                        pageSize = pagedList.PageSize
+                    })
+                    : null,
+                nextPageLink = pagedList.HasNext
+                    ? Url.Link(nameof(GetAuthorsAsync), new {
+                        pageNumber = pagedList.CurrentPage + 1,
+                        pageSize = pagedList.PageSize
+                    })
+                    : null
+            };
+            Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata));
+
+            var authorDtoList = _mapper.Map<IEnumerable<AuthorDto>>(pagedList.OrderBy(author => author.Name));
             return authorDtoList.ToList();
         }
 
