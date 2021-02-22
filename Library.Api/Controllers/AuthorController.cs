@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Library.Api.Entities;
+using Library.Api.Helpers;
 using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Mock;
@@ -22,8 +23,14 @@ namespace Library.Api.Controllers {
         }
 
         [HttpGet]
-        public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync() {
+        public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync(
+            [FromQuery] AuthorResourceParameters parameters
+        ) {
             var authors = (await _repositoryWrapper.Author.GetAllAsync())
+                // 实现分页功能
+                .Skip(parameters.PageSize * (parameters.PageNumber-1))
+                .Take(parameters.PageSize)
+                // 根据作者名称排序
                 .OrderBy(author => author.Name);
             var authorDtoList = _mapper.Map<IEnumerable<AuthorDto>>(authors);
             return authorDtoList.ToList();
@@ -52,7 +59,7 @@ namespace Library.Api.Controllers {
         public async Task<ActionResult> DeleteAuthorAsync(Guid authorId) {
             var author = await _repositoryWrapper.Author.GetByIdAsync(authorId);
             if (author == null) return NotFound();
-            
+
             _repositoryWrapper.Author.Delete(author);
             var result = await _repositoryWrapper.Author.SaveAsync();
             if (!result) throw new Exception("删除资源 Author 失败");
