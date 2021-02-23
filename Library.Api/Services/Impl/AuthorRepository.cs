@@ -14,6 +14,18 @@ namespace Library.Api.Services.Impl {
 
         public Task<PagedList<Author>> GetAllAsync(AuthorResourceParameters parameters) {
             IQueryable<Author> queryableAuthors = DbContext.Set<Author>();
+            // 过滤
+            if (!string.IsNullOrWhiteSpace(parameters.BirthPlace))
+                queryableAuthors = queryableAuthors.Where(author =>
+                    author.BirthPlace.ToLower() == parameters.BirthPlace.ToLower());
+
+            // 搜索
+            if (!string.IsNullOrWhiteSpace(parameters.SearchQuery))
+                queryableAuthors = queryableAuthors.Where(author =>
+                    author.BirthPlace.ToLower().Contains(parameters.SearchQuery.ToLower()) ||
+                    author.Name.ToLower().Contains(parameters.SearchQuery.ToLower()));
+
+            // 分页
             return PagedList<Author>.CreateAsync(queryableAuthors, parameters.PageNumber, parameters.PageSize);
         }
     }

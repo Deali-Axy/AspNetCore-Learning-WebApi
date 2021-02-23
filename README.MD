@@ -35,3 +35,5 @@ C#语言学习系列博客：
   实现简单分页功能
 - [v0.2.2](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.2)
   实现分页元数据
+- [v0.2.3](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.3)
+  实现作者过滤和搜索功能

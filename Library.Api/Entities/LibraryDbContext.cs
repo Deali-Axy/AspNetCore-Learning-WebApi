@@ -14,5 +14,10 @@ namespace Library.Api.Entities {
             // 添加种子数据
             modelBuilder.SeedData();
         }
+
+        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder) {
+            base.OnConfiguring(optionsBuilder);
+            optionsBuilder.EnableSensitiveDataLogging();
+        }
     }
 }

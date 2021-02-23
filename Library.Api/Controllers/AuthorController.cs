@@ -28,7 +28,7 @@ namespace Library.Api.Controllers {
             [FromQuery] AuthorResourceParameters parameters
         ) {
             var pagedList = await _repositoryWrapper.Author.GetAllAsync(parameters);
-            
+
             var paginationMetadata = new {
                 totalCount = pagedList.TotalCount,
                 pageSize = pagedList.PageSize,
@@ -37,13 +37,17 @@ namespace Library.Api.Controllers {
                 previousPageLink = pagedList.HasPrevious
                     ? Url.Link(nameof(GetAuthorsAsync), new {
                         pageNumber = pagedList.CurrentPage - 1,
-                        pageSize = pagedList.PageSize
+                        pageSize = pagedList.PageSize,
+                        birthPlace = parameters.BirthPlace,
+                        searchQuery = parameters.SearchQuery
                     })
                     : null,
                 nextPageLink = pagedList.HasNext
                     ? Url.Link(nameof(GetAuthorsAsync), new {
                         pageNumber = pagedList.CurrentPage + 1,
-                        pageSize = pagedList.PageSize
+                        pageSize = pagedList.PageSize,
+                        birthPlace = parameters.BirthPlace,
+                        searchQuery = parameters.SearchQuery
                     })
                     : null
             };
