@@ -23,12 +23,12 @@ namespace Library.Api.Controllers {
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = nameof(GetAuthorsAsync))]
         public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync(
             [FromQuery] AuthorResourceParameters parameters
         ) {
             var pagedList = await _repositoryWrapper.Author.GetAllAsync(parameters);
-
+            
             var paginationMetadata = new {
                 totalCount = pagedList.TotalCount,
                 pageSize = pagedList.PageSize,
