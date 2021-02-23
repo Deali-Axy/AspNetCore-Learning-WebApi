@@ -1,67 +1,42 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using Library.Api.Entities;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Api.Extensions {
     public static class ModelBuilderExtension {
         public static void SeedData(this ModelBuilder modelBuilder) {
-            var authorId1 = Guid.NewGuid();
-            var authorId2 = Guid.NewGuid();
-            
-            modelBuilder.Entity<Author>().HasData(
-                new Author {
-                    Id = authorId1,
-                    Name = "Author 1",
-                    BirthDate = new DateTimeOffset(new DateTime(1960,11,1)),
-                    BirthPlace = "中国香港",
-                    Email = "author1@deali.cn"
-                },
-                new Author {
-                    Id = authorId2,
-                    Name = "Author 2",
-                    BirthDate = new DateTimeOffset(new DateTime(1970,1,20)),
-                    BirthPlace = "London, England",
-                    Email = "author2@deali.cn"
-                }
-            );
+            var rnd = new Random();
+            var birthPlaces = new List<string> {"HongKong", "London", "Beijing", "Shanghai", "NewYork", "ToKyo"};
 
-            modelBuilder.Entity<Book>().HasData(
-                new Book {
+            var authors = new List<Author>();
+
+            for (int i = 1; i <= 50; i++) {
+                authors.Add(new Author {
                     Id = Guid.NewGuid(),
-                    Title = "Book 1",
-                    Description = "Description of Book 1",
-                    Pages = 281,
-                    AuthorId = authorId1
-                },
-                new Book {
+                    Name = $"Author {i}",
+                    BirthDate = new DateTimeOffset(new DateTime(rnd.Next(1950, 2010), rnd.Next(1, 13), rnd.Next(1, 30))),
+                    BirthPlace = birthPlaces.OrderBy(_ => Guid.NewGuid()).First(),
+                    Email = $"author{i}@deali.cn"
+                });
+            }
+
+            modelBuilder.Entity<Author>().HasData(authors);
+
+            var books = new List<Book>();
+
+            for (int i = 1; i <= 200; i++) {
+                books.Add(new Book {
                     Id = Guid.NewGuid(),
-                    Title = "Book 2",
-                    Description = "Description of Book 2",
-                    Pages = 382,
-                    AuthorId = authorId2
-                },
-                new Book {
-                    Id = Guid.NewGuid(),
-                    Title = "Book 3",
-                    Description = "Description of Book 3",
-                    Pages = 404,
-                    AuthorId = authorId1
-                },
-                new Book {
-                    Id = Guid.NewGuid(),
-                    Title = "Book 4",
-                    Description = "Description of Book 4",
-                    Pages = 501,
-                    AuthorId = authorId2
-                },
-                new Book {
-                    Id = Guid.NewGuid(),
-                    Title = "Book 5",
-                    Description = "Description of Book 5",
-                    Pages = 320,
-                    AuthorId = authorId1
-                }
-            );
+                    Title = $"Book {i}",
+                    Description = $"Description of Book {i}",
+                    Pages = rnd.Next(99, 1001),
+                    AuthorId = authors.OrderBy(_ => Guid.NewGuid()).First().Id
+                });
+            }
+
+            modelBuilder.Entity<Book>().HasData(books);
         }
     }
 }

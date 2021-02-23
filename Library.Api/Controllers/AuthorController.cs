@@ -39,7 +39,8 @@ namespace Library.Api.Controllers {
                         pageNumber = pagedList.CurrentPage - 1,
                         pageSize = pagedList.PageSize,
                         birthPlace = parameters.BirthPlace,
-                        searchQuery = parameters.SearchQuery
+                        searchQuery = parameters.SearchQuery,
+                        sortBy = parameters.SortBy,
                     })
                     : null,
                 nextPageLink = pagedList.HasNext
@@ -47,13 +48,14 @@ namespace Library.Api.Controllers {
                         pageNumber = pagedList.CurrentPage + 1,
                         pageSize = pagedList.PageSize,
                         birthPlace = parameters.BirthPlace,
-                        searchQuery = parameters.SearchQuery
+                        searchQuery = parameters.SearchQuery,
+                        sortBy = parameters.SortBy,
                     })
                     : null
             };
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata));
 
-            var authorDtoList = _mapper.Map<IEnumerable<AuthorDto>>(pagedList.OrderBy(author => author.Name));
+            var authorDtoList = _mapper.Map<IEnumerable<AuthorDto>>(pagedList);
             return authorDtoList.ToList();
         }
 

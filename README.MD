@@ -37,3 +37,5 @@ C#语言学习系列博客：
   实现分页元数据
 - [v0.2.3](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.3)
   实现作者过滤和搜索功能
+- [v0.2.4](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.4)
+  实现作者排序（多字段、正排倒排）功能
