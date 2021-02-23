@@ -12,7 +12,7 @@ namespace Library.Api.Extensions {
 
             var authors = new List<Author>();
 
-            for (int i = 1; i <= 50; i++) {
+            for (var i = 1; i <= 50; i++) {
                 authors.Add(new Author {
                     Id = Guid.NewGuid(),
                     Name = $"Author {i}",
@@ -26,7 +26,7 @@ namespace Library.Api.Extensions {
 
             var books = new List<Book>();
 
-            for (int i = 1; i <= 200; i++) {
+            for (var i = 1; i <= 200; i++) {
                 books.Add(new Book {
                     Id = Guid.NewGuid(),
                     Title = $"Book {i}",

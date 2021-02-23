@@ -9,6 +9,7 @@ using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Mock;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 
 namespace Library.Api.Controllers {
@@ -17,16 +18,21 @@ namespace Library.Api.Controllers {
     public class AuthorController : ControllerBase {
         private readonly IRepositoryWrapper _repositoryWrapper;
         private readonly IMapper _mapper;
+        private readonly ILogger<AuthorController> _logger;
 
-        public AuthorController(IRepositoryWrapper repositoryWrapper, IMapper mapper) {
+        public AuthorController(IRepositoryWrapper repositoryWrapper, IMapper mapper,
+            ILogger<AuthorController> logger
+        ) {
             _repositoryWrapper = repositoryWrapper;
             _mapper = mapper;
+            _logger = logger;
         }
 
         [HttpGet(Name = nameof(GetAuthorsAsync))]
         public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync(
             [FromQuery] AuthorResourceParameters parameters
         ) {
+            _logger.LogInformation(nameof(GetAuthorsAsync));
             var pagedList = await _repositoryWrapper.Author.GetAllAsync(parameters);
 
             var paginationMetadata = new {

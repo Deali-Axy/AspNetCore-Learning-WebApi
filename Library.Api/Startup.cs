@@ -16,7 +16,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 
 namespace Library.Api {
@@ -29,9 +28,9 @@ namespace Library.Api {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
-            services.AddControllers()
+            services.AddControllers(config => { config.Filters.Add<JsonExceptionFilter>(); })
                 .AddNewtonsoftJson();
-            
+
             services.AddAutoMapper(typeof(Startup));
 
             // Swagger Doc
@@ -49,7 +48,7 @@ namespace Library.Api {
 
             // 仓储包装器
             services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
-            
+
             // 过滤器
             services.AddScoped<CheckAuthorExistFilterAttribute>();
         }
