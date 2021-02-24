@@ -44,6 +44,13 @@ namespace Library.Api {
 
             services.AddAutoMapper(typeof(Startup));
 
+            // API版本服务
+            services.AddApiVersioning(options => {
+                options.AssumeDefaultVersionWhenUnspecified = true;
+                options.ReportApiVersions = true;
+                options.DefaultApiVersion = new ApiVersion(1, 0);
+            });
+
             // 相应缓存
             services.AddResponseCaching(options => {
                 options.UseCaseSensitivePaths = true;
