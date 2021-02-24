@@ -41,3 +41,5 @@ C#语言学习系列博客：
   实现作者排序（多字段、正排倒排）功能
 - [v0.2.5](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.5)
   完成日志配置+异常过滤器
+- [v0.2.6](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.6)
+  实现Http缓存功能

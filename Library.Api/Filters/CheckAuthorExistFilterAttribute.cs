@@ -17,10 +17,10 @@ namespace Library.Api.Filters {
             _repositoryWrapper = repositoryWrapper;
         }
 
-        public override async Task
-            OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next) {
-            var authorIdParameter =
-                context.ActionArguments.Single(m => m.Key == "authorId");
+        public override async Task OnActionExecutionAsync(ActionExecutingContext context, ActionExecutionDelegate next) {
+            var authorIdParameter = context.ActionArguments.Single(
+                m => m.Key == "authorId"
+            );
             var authorId = (Guid) authorIdParameter.Value;
             var isExist = await _repositoryWrapper.Author.IsExistAsync(authorId);
             if (!isExist) {

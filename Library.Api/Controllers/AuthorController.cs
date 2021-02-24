@@ -4,12 +4,15 @@ using System.Linq;
 using System.Threading.Tasks;
 using AutoMapper;
 using Library.Api.Entities;
+using Library.Api.Filters;
 using Library.Api.Helpers;
 using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Mock;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 
 namespace Library.Api.Controllers {
@@ -20,7 +23,8 @@ namespace Library.Api.Controllers {
         private readonly IMapper _mapper;
         private readonly ILogger<AuthorController> _logger;
 
-        public AuthorController(IRepositoryWrapper repositoryWrapper, IMapper mapper,
+        public AuthorController(IRepositoryWrapper repositoryWrapper,
+            IMapper mapper,
             ILogger<AuthorController> logger
         ) {
             _repositoryWrapper = repositoryWrapper;
@@ -29,6 +33,7 @@ namespace Library.Api.Controllers {
         }
 
         [HttpGet(Name = nameof(GetAuthorsAsync))]
+        [ResponseCache(CacheProfileName = "Default", VaryByQueryKeys = new[] {"sortBy", "searchQuery"})]
         public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync(
             [FromQuery] AuthorResourceParameters parameters
         ) {
@@ -65,10 +70,30 @@ namespace Library.Api.Controllers {
             return authorDtoList.ToList();
         }
 
+        /// <summary>获取作者信息</summary>
+        /// <remarks>
+        ///     通过ResponseCache特性的Location属性设置缓存的位置
+        ///     <code>
+        ///         Any: 设置Cache-Control的值为 public
+        ///         Client: private
+        ///         None: no-cache
+        ///     </code>
+        /// </remarks>
+        /// <param name="authorId">作者ID</param>
+        /// <returns></returns>
         [HttpGet("{authorId}", Name = nameof(GetAuthorAsync))]
+        [ResponseCache(Duration = 60, Location = ResponseCacheLocation.Client)]
         public async Task<ActionResult<AuthorDto>> GetAuthorAsync(Guid authorId) {
             var author = await _repositoryWrapper.Author.GetByIdAsync(authorId);
             if (author == null) return NotFound();
+
+            var entityHash = HashFactory.GetHash(author);
+            Response.Headers[HeaderNames.ETag] = entityHash;
+            if (Request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var requestETag)
+                && entityHash == requestETag
+            ) {
+                return StatusCode(StatusCodes.Status304NotModified);
+            }
 
             return _mapper.Map<AuthorDto>(author);
         }

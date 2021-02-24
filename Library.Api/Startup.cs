@@ -28,10 +28,27 @@ namespace Library.Api {
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services) {
-            services.AddControllers(config => { config.Filters.Add<JsonExceptionFilter>(); })
-                .AddNewtonsoftJson();
+            services.AddControllers(config => {
+                config.Filters.Add<JsonExceptionFilter>();
+                // 添加缓存配置
+                config.CacheProfiles.Add("Default",
+                    new CacheProfile {
+                        Duration = 60
+                    });
+                config.CacheProfiles.Add("Never",
+                    new CacheProfile() {
+                        Location = ResponseCacheLocation.None,
+                        NoStore = true
+                    });
+            }).AddNewtonsoftJson();
 
             services.AddAutoMapper(typeof(Startup));
+
+            // 相应缓存
+            services.AddResponseCaching(options => {
+                options.UseCaseSensitivePaths = true;
+                options.MaximumBodySize = 1024;
+            });
 
             // Swagger Doc
             services.AddSwaggerGen(c => {
@@ -70,7 +87,9 @@ namespace Library.Api {
             // swagger 中间件
             app.UseSwagger();
             app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Library Api v1"));
-
+            
+            // 相应缓存中间件
+            app.UseResponseCaching();
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }
     }

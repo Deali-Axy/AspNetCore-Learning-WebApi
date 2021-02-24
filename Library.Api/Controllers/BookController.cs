@@ -33,6 +33,7 @@ namespace Library.Api.Controllers {
         }
 
         [HttpGet("{bookId}", Name = nameof(GetBookAsync))]
+        [ResponseCache(CacheProfileName = "Default")]
         public async Task<ActionResult<BookDto>> GetBookAsync(Guid authorId, Guid bookId) {
             var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();
