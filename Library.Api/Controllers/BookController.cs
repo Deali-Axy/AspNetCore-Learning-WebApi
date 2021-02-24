@@ -1,16 +1,20 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Policy;
 using System.Threading.Tasks;
 using AutoMapper;
 using Library.Api.Entities;
 using Library.Api.Filters;
+using Library.Api.Helpers;
 using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Impl;
 using Library.Api.Services.Mock;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Net.Http.Headers;
 
 namespace Library.Api.Controllers {
     [ApiController]
@@ -59,7 +63,7 @@ namespace Library.Api.Controllers {
         public async Task<IActionResult> DeleteBookAsync(Guid authorId, Guid bookId) {
             var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();
-            
+
             _repositoryWrapper.Book.Delete(book);
             var result = await _repositoryWrapper.Book.SaveAsync();
             if (!result) throw new Exception("删除资源失败");
@@ -68,19 +72,33 @@ namespace Library.Api.Controllers {
         }
 
         [HttpPut("{bookId}")]
+        [CheckIfMatchHeaderFilter]
         public async Task<IActionResult> UpdateBookAsync(Guid authorId, Guid bookId, BookForUpdateDto updatedBook) {
             var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();
+
+            // 获取 ETag
+            var entityHash = HashFactory.GetHash(book);
+            if (Request.Headers.TryGetValue(HeaderNames.IfMatch, out var requestETag)
+                && requestETag != entityHash) {
+                return StatusCode(StatusCodes.Status412PreconditionFailed);
+            }
 
             _mapper.Map(updatedBook, book, typeof(BookForUpdateDto), typeof(Book));
             _repositoryWrapper.Book.Update(book);
             if (!await _repositoryWrapper.Book.SaveAsync()) throw new Exception("更新资源失败");
 
+            // 更新 ETag
+            entityHash = HashFactory.GetHash(book);
+            Response.Headers[HeaderNames.IfMatch] = entityHash;
+
             return NoContent();
         }
 
         [HttpPatch("{bookId}")]
-        public async Task<IActionResult> PartiallyUpdateBookAsync(Guid authorId, Guid bookId,
+        [CheckIfMatchHeaderFilter]
+        public async Task<IActionResult> PartiallyUpdateBookAsync(Guid authorId,
+            Guid bookId,
             JsonPatchDocument<BookForUpdateDto> patchDocument) {
             var book = await _repositoryWrapper.Book.GetBookAsync(authorId, bookId);
             if (book == null) return NotFound();

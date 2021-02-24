@@ -87,13 +87,12 @@ namespace Library.Api.Controllers {
             var author = await _repositoryWrapper.Author.GetByIdAsync(authorId);
             if (author == null) return NotFound();
 
+            // 检查author是否被修改
             var entityHash = HashFactory.GetHash(author);
             Response.Headers[HeaderNames.ETag] = entityHash;
             if (Request.Headers.TryGetValue(HeaderNames.IfNoneMatch, out var requestETag)
-                && entityHash == requestETag
-            ) {
+                && entityHash == requestETag)
                 return StatusCode(StatusCodes.Status304NotModified);
-            }
 
             return _mapper.Map<AuthorDto>(author);
         }
