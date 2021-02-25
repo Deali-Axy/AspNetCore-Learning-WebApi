@@ -44,7 +44,7 @@ namespace Library.Api {
 
             services.AddAutoMapper(typeof(Startup));
 
-            // 相应缓存
+            // 响应缓存
             services.AddResponseCaching(options => {
                 options.UseCaseSensitivePaths = true;
                 options.MaximumBodySize = 1024;
