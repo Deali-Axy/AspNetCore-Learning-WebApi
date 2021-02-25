@@ -32,9 +32,71 @@ namespace Library.Api.Controllers {
             _logger = logger;
         }
 
+        private AuthorDto CreateLinksForAuthor(AuthorDto author) {
+            author.Links.Clear();
+            author.Links.Add(new Link {
+                Method = HttpMethods.Get,
+                Href = "self",
+                Relation = Url.Link(nameof(GetAuthorAsync), new {authorId = author.Id})
+            });
+            author.Links.Add(new Link {
+                Method = HttpMethods.Delete,
+                Href = "delete author",
+                Relation = Url.Link(nameof(DeleteAuthorAsync), new {authorId = author.Id})
+            });
+            author.Links.Add(new Link {
+                Method = HttpMethods.Get,
+                Href = "author's book",
+                Relation = Url.Link(nameof(BookController.GetBooksAsync), new {authorId = author.Id})
+            });
+            return author;
+        }
+
+        /// <summary>
+        /// 为资源集合本身添加链接列表
+        /// </summary>
+        /// <param name="authors"></param>
+        /// <param name="parameters"></param>
+        /// <param name="paginationData"></param>
+        /// <returns></returns>
+        private ResourceCollection<AuthorDto> CreateLinksForAuthors(
+            ResourceCollection<AuthorDto> authors,
+            AuthorResourceParameters parameters = null,
+            dynamic paginationData = null
+        ) {
+            authors.Links.Clear();
+            authors.Links.Add(new Link {
+                Method = HttpMethods.Get,
+                Href = "self",
+                Relation = Url.Link(nameof(GetAuthorsAsync), parameters)
+            });
+            authors.Links.Add(new Link {
+                Method = HttpMethods.Post,
+                Href = "create author",
+                Relation = Url.Link(nameof(CreateAuthorAsync), null)
+            });
+            if (paginationData != null) {
+                if (paginationData.previousPageLink != null)
+                    authors.Links.Add(new Link {
+                        Method = HttpMethods.Get,
+                        Href = "previous page",
+                        Relation = paginationData.previousePageLink
+                    });
+
+                if (paginationData.nextPageLink != null)
+                    authors.Links.Add(new Link {
+                        Method = HttpMethods.Get,
+                        Href = "next page",
+                        Relation = paginationData.nextPageLink
+                    });
+            }
+
+            return authors;
+        }
+
         [HttpGet(Name = nameof(GetAuthorsAsync))]
         [ResponseCache(CacheProfileName = "Default", VaryByQueryKeys = new[] {"sortBy", "searchQuery"})]
-        public async Task<ActionResult<List<AuthorDto>>> GetAuthorsAsync(
+        public async Task<ActionResult<ResourceCollection<AuthorDto>>> GetAuthorsAsync(
             [FromQuery] AuthorResourceParameters parameters
         ) {
             _logger.LogInformation(nameof(GetAuthorsAsync));
@@ -67,7 +129,12 @@ namespace Library.Api.Controllers {
             Response.Headers.Add("X-Pagination", JsonConvert.SerializeObject(paginationMetadata));
 
             var authorDtoList = _mapper.Map<IEnumerable<AuthorDto>>(pagedList);
-            return authorDtoList.ToList();
+            // 为集合中的每一个资源添加链接列表
+            authorDtoList = authorDtoList.Select(CreateLinksForAuthor);
+            var resourceList = new ResourceCollection<AuthorDto> {
+                Items = authorDtoList.ToList()
+            };
+            return CreateLinksForAuthors(resourceList, parameters, paginationMetadata);
         }
 
         /// <summary>获取作者信息</summary>
@@ -94,21 +161,21 @@ namespace Library.Api.Controllers {
                 && entityHash == requestETag)
                 return StatusCode(StatusCodes.Status304NotModified);
 
-            return _mapper.Map<AuthorDto>(author);
+            return CreateLinksForAuthor(_mapper.Map<AuthorDto>(author));
         }
 
-        [HttpPost]
+        [HttpPost(Name = nameof(CreateAuthorAsync))]
         public async Task<ActionResult> CreateAuthorAsync(AuthorForCreationDto authorForCreationDto) {
             var author = _mapper.Map<Author>(authorForCreationDto);
             _repositoryWrapper.Author.Create(author);
             var result = await _repositoryWrapper.Author.SaveAsync();
             if (!result) throw new Exception("创建资源 Author 失败");
 
-            var authorCreated = _mapper.Map<AuthorDto>(author);
+            var authorCreated = CreateLinksForAuthor(_mapper.Map<AuthorDto>(author));
             return CreatedAtRoute(nameof(GetAuthorAsync), new {authorId = authorCreated.Id}, authorCreated);
         }
 
-        [HttpDelete("{authorId}")]
+        [HttpDelete("{authorId}", Name = nameof(DeleteAuthorAsync))]
         public async Task<ActionResult> DeleteAuthorAsync(Guid authorId) {
             var author = await _repositoryWrapper.Author.GetByIdAsync(authorId);
             if (author == null) return NotFound();

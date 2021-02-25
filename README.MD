@@ -45,3 +45,5 @@ C#语言学习系列博客：
   实现Http缓存功能
 - [v0.2.7](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.7)
   `BookController.UpdateBookAsync()` 加入简单的开放式并发控制功能
+- [v0.2.8](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.8)
+  实现HATEOAS

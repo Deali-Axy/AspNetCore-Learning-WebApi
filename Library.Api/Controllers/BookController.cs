@@ -29,7 +29,7 @@ namespace Library.Api.Controllers {
             _mapper = mapper;
         }
 
-        [HttpGet]
+        [HttpGet(Name = nameof(GetBooksAsync))]
         public async Task<ActionResult<IEnumerable<BookDto>>> GetBooksAsync(Guid authorId) {
             var books = await _repositoryWrapper.Book.GetBooksAsync(authorId);
             var bookDtoList = _mapper.Map<IEnumerable<BookDto>>(books);
