@@ -9,6 +9,7 @@ using Library.Api.Helpers;
 using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Mock;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -17,6 +18,7 @@ using Newtonsoft.Json;
 
 namespace Library.Api.Controllers {
     [ApiController]
+    [Authorize]
     [Route("api/authors")]
     public class AuthorController : ControllerBase {
         private readonly IRepositoryWrapper _repositoryWrapper;
@@ -94,6 +96,7 @@ namespace Library.Api.Controllers {
             return authors;
         }
 
+        [AllowAnonymous]
         [HttpGet(Name = nameof(GetAuthorsAsync))]
         [ResponseCache(CacheProfileName = "Default", VaryByQueryKeys = new[] {"sortBy", "searchQuery"})]
         public async Task<ActionResult<ResourceCollection<AuthorDto>>> GetAuthorsAsync(

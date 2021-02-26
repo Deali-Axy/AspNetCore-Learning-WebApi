@@ -11,6 +11,8 @@ using Library.Api.Models;
 using Library.Api.Services;
 using Library.Api.Services.Impl;
 using Library.Api.Services.Mock;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.JsonPatch;
 using Microsoft.AspNetCore.Mvc;
@@ -18,6 +20,7 @@ using Microsoft.Net.Http.Headers;
 
 namespace Library.Api.Controllers {
     [ApiController]
+    [Authorize(AuthenticationSchemes = JwtBearerDefaults.AuthenticationScheme)]
     [Route("api/authors/{authorId}/books")]
     [ServiceFilter(typeof(CheckAuthorExistFilterAttribute))]
     public class BookController : ControllerBase {

@@ -1,8 +1,9 @@
 ﻿using Library.Api.Extensions;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Library.Api.Entities {
-    public class LibraryDbContext : DbContext {
+    public class LibraryDbContext : IdentityDbContext<User, Role, string> {
         public DbSet<Author> Authors { get; set; }
         public DbSet<Book> Books { get; set; }
 

@@ -47,3 +47,5 @@ C#语言学习系列博客：
   `BookController.UpdateBookAsync()` 加入简单的开放式并发控制功能
 - [v0.2.8](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.2.8)
   实现HATEOAS
+- [v0.3](https://github.com/Deali-Axy/AspNetCore-Learning/tree/v0.3)
+  实现JwtBearerToken认证+EFCore后端
