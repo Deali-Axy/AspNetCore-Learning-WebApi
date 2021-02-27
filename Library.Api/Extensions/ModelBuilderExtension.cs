@@ -16,7 +16,7 @@ namespace Library.Api.Extensions {
                 authors.Add(new Author {
                     Id = Guid.NewGuid(),
                     Name = $"Author {i}",
-                    BirthDate = new DateTimeOffset(new DateTime(rnd.Next(1950, 2010), rnd.Next(1, 13), rnd.Next(1, 30))),
+                    BirthDate = new DateTimeOffset(new DateTime(rnd.Next(1950, 2010), rnd.Next(1, 13), rnd.Next(1, 29))),
                     BirthPlace = birthPlaces.OrderBy(_ => Guid.NewGuid()).First(),
                     Email = $"author{i}@deali.cn"
                 });
