@@ -87,7 +87,7 @@ namespace Library.Api.Controllers {
             var result = await _userManager.CreateAsync(user, registerUser.Password);
             if (result.Succeeded) return Ok();
 
-            await AddUserToRoleAsync(user, "Staff");
+            await AddUserToRoleAsync(user, "User1");
 
             ModelState.AddModelError("Error", result.Errors.FirstOrDefault()?.Description);
             return BadRequest(ModelState);
