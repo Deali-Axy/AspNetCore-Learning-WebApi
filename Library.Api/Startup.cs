@@ -39,7 +39,7 @@ namespace Library.Api {
                         Duration = 60
                     });
                 config.CacheProfiles.Add("Never",
-                    new CacheProfile() {
+                    new CacheProfile {
                         Location = ResponseCacheLocation.None,
                         NoStore = true
                     });
