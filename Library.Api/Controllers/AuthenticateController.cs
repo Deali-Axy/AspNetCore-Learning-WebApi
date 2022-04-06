@@ -22,10 +22,29 @@ namespace Library.Api.Controllers {
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AuthenticateController(RoleManager<Role> roleManager, UserManager<User> userManager, IConfiguration configuration) {
+        public AuthenticateController(RoleManager<Role> roleManager, UserManager<User> userManager,
+            IConfiguration configuration) {
             _roleManager = roleManager;
             _userManager = userManager;
             _configuration = configuration;
+        }
+
+        private async Task AddUserToRoleAsync(User user, string roleName) {
+            if (user == null || string.IsNullOrWhiteSpace(roleName)) {
+                return;
+            }
+
+            var isRoleExist = await _roleManager.RoleExistsAsync(roleName);
+            if (!isRoleExist) {
+                await _roleManager.CreateAsync(new Role {Name = roleName});
+            }
+            else {
+                if (await _userManager.IsInRoleAsync(user, roleName)) {
+                    return;
+                }
+            }
+
+            await _userManager.AddToRoleAsync(user, roleName);
         }
 
         [HttpPost("token", Name = nameof(GenerateToken))]
@@ -52,8 +71,12 @@ namespace Library.Api.Controllers {
                 expiration = TimeZoneInfo.ConvertTimeFromUtc(jwtToken.ValidTo, TimeZoneInfo.Local)
             });
         }
-
-
+        
+        /// <summary>
+        /// 注册新用户
+        /// </summary>
+        /// <param name="registerUser"></param>
+        /// <returns></returns>
         [HttpPost("register", Name = nameof(AddUserAsync))]
         public async Task<IActionResult> AddUserAsync(RegisterUser registerUser) {
             var user = new User {
@@ -63,6 +86,8 @@ namespace Library.Api.Controllers {
             };
             var result = await _userManager.CreateAsync(user, registerUser.Password);
             if (result.Succeeded) return Ok();
+
+            await AddUserToRoleAsync(user, "User1");
 
             ModelState.AddModelError("Error", result.Errors.FirstOrDefault()?.Description);
             return BadRequest(ModelState);
